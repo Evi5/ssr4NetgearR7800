@@ -1,0 +1,88 @@
+#=================================================
+# https://github.com/Evi5/ssr4NetgearR7800
+# Description: Build ssr using GitHub Actions
+# Lisence: Apache License 2.0
+# Author: Evi5
+# Github: https://github.com/Evi5
+#=================================================
+
+name: Build luci-app-ssr-plus for OpenWrt
+
+on:
+# 编辑触发
+  push:
+    branches: 
+       - master
+
+env:
+  # SDK 源
+  SDK_URL: https://downloads.openwrt.org/releases/23.05.0/targets/ipq806x/generic/openwrt-sdk-23.05.0-ipq806x-generic_gcc-12.3.0_musl_eabi.Linux-x86_64.tar.xz
+  # lede 源
+  LEDE_URL: https://github.com/coolsnowwolf/lede
+  # 分支
+  REPO_BRANCH: master
+
+jobs:
+  build:
+    if: github.event.repository.owner.id == github.event.sender.id
+    runs-on: ubuntu-22.04  # Use Ubuntu 22.04 LTS
+
+    steps:
+    # 校验本地文件
+    - name: Checkout
+      uses: actions/checkout@main
+
+    - name: Set Up Build Environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y subversion build-essential libncurses5-dev zlib1g-dev gawk git ccache gettext libssl-dev xsltproc wget unzip python time
+
+    - name: download sdk
+      run: |
+        mkdir sdk
+        wget $SDK_URL
+        tar xf *.tar.xz -c sdk
+        
+    - name: clone lede
+      run: |
+        git clone $LEDE_URL
+        cp -r lede/package/lean sdk/package
+        cd sdk
+
+    - name: feeds
+      run: |
+        echo "src-git helloworld https://github.com/fw876/helloworld" >> feeds.conf.default
+        ./scripts/feeds update -a
+
+    - name: compile luci-base
+      run: |
+        ./scripts/feeds install luci-base
+        make package/feeds/luci/luci-base/compile
+
+    - name: compile luci-app-ssr-plus
+      run: |
+        ./scripts/feeds install luci-app-ssr-plus
+        make package/feeds/helloworld/luci-app-ssr-plus/compile -j1 V=s
+
+    - name: Start SSH via Ngrok
+      if: ${{ failure() }}
+      run: curl -sL https://gist.githubusercontent.com/retyui/7115bb6acf151351a143ec8f96a7c561/raw/7099b9db76729dc5761da72aa8525f632d8875c9/debug-github-actions.sh | bash
+      env:
+       # After sign up on the https://ngrok.com/
+       # You can find this token here: https://dashboard.ngrok.com/get-started/setup
+       # NGROK_TOKEN: ${{ secrets.NGROK_TOKEN }}
+       NGROK_TOKEN: ${{ secrets.NGROK_TOKEN }}
+
+       # This password you will use when authorizing via SSH 
+       # USER_PASS: ${{ secrets.USER_PASS }}
+       USER_PASS: murAmur
+       # if: env.SSH_ACTIONS == 'true'
+
+    - name: Don't kill instace
+      if: ${{ failure() }}
+      run: sleep 1h # Prevent to killing instance after failure
+
+    - name: success
+      run: |
+        echo "success"
+
