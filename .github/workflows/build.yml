@@ -50,13 +50,14 @@ jobs:
 
     - name: feeds
       run: |
-        pwd
         cd sdk
+        pwd
         echo "src-git helloworld https://github.com/fw876/helloworld" >> feeds.conf.default
         ./scripts/feeds update -a
 
     - name: compile luci-base
       run: |
+        cd sdk
         pwd
         ./scripts/feeds install luci-base
         make defconfig
@@ -64,6 +65,8 @@ jobs:
 
     - name: compile luci-app-ssr-plus
       run: |
+        cd sdk
+        pwd
         ./scripts/feeds install luci-app-ssr-plus
         make package/feeds/helloworld/luci-app-ssr-plus/compile -j1 V=s
 
