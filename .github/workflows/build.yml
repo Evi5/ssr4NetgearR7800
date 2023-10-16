@@ -12,7 +12,7 @@ on:
 # 编辑触发
   push:
     branches: 
-       - master
+       - main
 
 env:
   # SDK 源
@@ -20,7 +20,7 @@ env:
   # lede 源
   LEDE_URL: https://github.com/coolsnowwolf/lede
   # 分支
-  REPO_BRANCH: master
+  REPO_BRANCH: main
 
 jobs:
   build:
