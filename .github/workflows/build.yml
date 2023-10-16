@@ -47,10 +47,11 @@ jobs:
       run: |
         git clone $LEDE_URL
         cp -r lede/package/lean sdk/package
-        cd sdk
 
     - name: feeds
       run: |
+        pwd
+        cd sdk
         echo "src-git helloworld https://github.com/fw876/helloworld" >> feeds.conf.default
         ./scripts/feeds update -a
 
