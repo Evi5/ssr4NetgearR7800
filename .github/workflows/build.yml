@@ -25,6 +25,9 @@ env:
   GITHUB_USER_NAME: Evi5
   # Github 邮箱
   GITHUB_USER_EMAIL: ${{ secrets.EMAIL }}
+  # 分支
+  BRANCH: helloworld
+  UPLOAD_HELLOWORLD: true
 
 jobs:
   build:
@@ -53,44 +56,55 @@ jobs:
         cp -r lede/package/lean sdk/package
 
     - name: feeds
+      working-directory: ./sdk
       run: |
-        cd sdk
         pwd
         echo "src-git helloworld https://github.com/fw876/helloworld" >> feeds.conf.default
         ./scripts/feeds update -a
 
     - name: compile luci-base
+      working-directory: ./sdk
       run: |
-        cd sdk
         pwd
         ./scripts/feeds install luci-base
         make defconfig
         make package/feeds/luci/luci-base/compile -j1
 
     - name: compile luci-app-ssr-plus
+      working-directory: ./sdk
+      id: compile
       run: |
-        cd sdk
         pwd
         ./scripts/feeds install luci-app-ssr-plus
         make package/feeds/helloworld/luci-app-ssr-plus/compile -j1 V=s
+        echo "::set-output name=status::success"
 
     # 上传到分支 By yfdoor
     - name: Upload Branch
+      working-directory: ./sdk
       env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
       run: |
-          cd sdk/bin
+          cd bin
           git init
           git config user.name $GITHUB_USER_NAME
           git config user.email $GITHUB_USER_EMAIL
           git add .
-          git commit -m "Update OpenWrt_"$BRANCH
-          git push --force --quiet https://${{ secrets.RELEASE_TOKEN }}@$GITHUB HEAD:OpenWrt-$BRANCH
+          git commit -m "Update SSR_"$BRANCH
+          git push --force --quiet https://${{ secrets.RELEASE_TOKEN }}@$GITHUB HEAD:SSR-$BRANCH
+
+    - name: Organize Files
+      working-directory: ./sdk
+      if: steps.compile.outputs.status == 'success' && env.UPLOAD_FIRMWARE == 'true' && !cancelled()
+      run: |
+        cd bin/packages/arm_cortex-a15_neon-vfpv4/helloworld
+        echo "FIRMWARE=$PWD" >> $GITHUB_ENV
+        echo "::set-output name=status::success"
 
     # 生成标签
     - name: Generate Tag
       id: tag
-      if: steps.compile.outputs.status == 'success' && env.CREATE_RELEASE == 'true' && !cancelled()
+      if: steps.compile.outputs.status == 'success' && env.UPLOAD_HELLOWORLD == 'true' && !cancelled()
       run: |
         echo "RELEASE_TAG=$(TZ=UTC-8 date +"%Y-%m-%d")" >> $GITHUB_ENV
         echo "::set-output name=status::success"
@@ -105,8 +119,8 @@ jobs:
         name: Netgear ${{ env.BRANCH }} 🚀 | 自动编译 / ${{ env.RELEASE_TAG }}
         tag_name: ${{ env.RELEASE_TAG }}
         body: |            
-            1、本固件为自动编译
-            2、luci-app-ssr-plus Netgear R7800 Openwrt23.05.0
+            1、luci-app-ssr-plus Netgear R7800 Openwrt23.05.0
+            2、实际安装中缺少的ipk请到分支下载
             -- Build by ${{ env.BUILD_USER }} @ with Github Action on ${{ env.RELEASE_TAG }}
             🚀 Auto build | 自动编译
         files: ${{ env.FIRMWARE }}/*
