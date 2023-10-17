@@ -27,6 +27,8 @@ env:
   GITHUB_USER_EMAIL: ${{ secrets.EMAIL }}
   # 分支
   BRANCH: helloworld
+  # Github
+  GITHUB: github.com/Evi5/ssr4NetgearR7800.git
   UPLOAD_HELLOWORLD: true
 
 jobs:
