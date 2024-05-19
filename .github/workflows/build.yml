@@ -16,7 +16,7 @@ on:
 
 env:
   # SDK 源
-  SDK_URL: https://downloads.openwrt.org/releases/23.05.0/targets/ipq806x/generic/openwrt-sdk-23.05.0-ipq806x-generic_gcc-12.3.0_musl_eabi.Linux-x86_64.tar.xz
+  SDK_URL: https://downloads.openwrt.org/releases/23.05.3/targets/ipq806x/generic/openwrt-sdk-23.05.3-ipq806x-generic_gcc-12.3.0_musl_eabi.Linux-x86_64.tar.xz
   # lede 源
   LEDE_URL: https://github.com/coolsnowwolf/lede
   # 分支
@@ -26,7 +26,7 @@ env:
   # Github 邮箱
   GITHUB_USER_EMAIL: ${{ secrets.EMAIL }}
   # 分支
-  BRANCH: helloworld
+  BRANCH: helloworld_23.05.3
   # Github
   GITHUB: github.com/Evi5/ssr4NetgearR7800.git
   UPLOAD_HELLOWORLD: true
@@ -50,7 +50,7 @@ jobs:
       run: |
         wget $SDK_URL
         tar xf *.tar.xz
-        mv openwrt-sdk-23.05.0-ipq806x-generic_gcc-12.3.0_musl_eabi.Linux-x86_64 sdk
+        mv openwrt-sdk-23.05.3-ipq806x-generic_gcc-12.3.0_musl_eabi.Linux-x86_64 sdk
         
     - name: clone lede
       run: |
